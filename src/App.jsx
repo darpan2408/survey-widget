@@ -68,6 +68,17 @@ function App() {
     }
   }, [score])
 
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.type === 'NPS_WIDGET_RESET') {
+        setScore(null)
+        setFeedback('')
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
+
   return (
     <div className="app-shell">
       <ConfettiBurst trigger={score === 5} />

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>NPS Widget Host Test</title>
+  <style>body { font-family: sans-serif; padding: 2rem; }</style>
+</head>
+<body>
+  <h1>This is just a host page</h1>
+  <p>You should see the blue survey button in the bottom-right corner.</p>
+
+  <script>
+    // Tell the widget where your survey lives
+    window.NPS_WIDGET_URL = 'https://survey-widget-gold.vercel.app/'
+  </script>
+  <script src="https://survey-widget-gold.vercel.app/nps-widget.js" async></script>
+</body>
+</html>
