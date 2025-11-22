@@ -124,7 +124,24 @@ function App() {
           <p>
             We appreciate your score. Could you spare a minute to share a quick review on Google?
           </p>
-          <a className="review-link" href={GOOGLE_REVIEW_URL} target="_blank" rel="noreferrer">
+          <a
+            className="review-link"
+            href={GOOGLE_REVIEW_URL}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => {
+              // Close the widget automatically after clicking the review link
+              setTimeout(() => {
+                try {
+                  if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'NPS_WIDGET_CLOSE' }, '*')
+                  }
+                } catch (error) {
+                  console.error('Failed to send close message:', error)
+                }
+              }, 100)
+            }}
+          >
             Leave a Google review
           </a>
         </div>
@@ -152,6 +169,16 @@ function App() {
               alert('Thanks for letting us know. We are on it!')
               setFeedback('')
               setScore(null)
+              // Close the widget automatically after submission
+              setTimeout(() => {
+                try {
+                  if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'NPS_WIDGET_CLOSE' }, '*')
+                  }
+                } catch (error) {
+                  console.error('Failed to send close message:', error)
+                }
+              }, 100)
             }}
           >
             Submit feedback

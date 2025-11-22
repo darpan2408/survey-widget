@@ -104,6 +104,8 @@
   closeBtn.innerHTML = '&times;'
   closeBtn.setAttribute('aria-label', 'Close survey')
 
+  const STORAGE_KEY = 'nps-widget-closed'
+  
   const closeOverlay = () => {
     try {
       iframe.contentWindow?.postMessage({ type: 'NPS_WIDGET_RESET' }, widgetOrigin)
@@ -112,6 +114,12 @@
     }
     overlay.classList.remove('active')
     iframe.src = WIDGET_URL
+    // Remember that user closed the widget
+    try {
+      localStorage.setItem(STORAGE_KEY, 'true')
+    } catch (error) {
+      // localStorage might not be available
+    }
   }
 
   closeBtn.addEventListener('click', closeOverlay)
@@ -126,11 +134,45 @@
     overlay.classList.add('active')
   })
 
+  // Listen for close message from the iframe (when feedback is submitted)
+  window.addEventListener('message', (event) => {
+    const originMatches = widgetOrigin === '*' || event.origin === widgetOrigin
+    if (originMatches && event.data?.type === 'NPS_WIDGET_CLOSE') {
+      closeOverlay()
+    }
+  })
+
   panel.appendChild(closeBtn)
   panel.appendChild(iframe)
 
   overlay.appendChild(panel)
   document.body.appendChild(button)
   document.body.appendChild(overlay)
+
+  // Auto-open widget once if it hasn't been closed before
+  const hasBeenClosed = () => {
+    try {
+      return localStorage.getItem(STORAGE_KEY) === 'true'
+    } catch (error) {
+      return false
+    }
+  }
+
+  // Wait for DOM to be ready and auto-open if needed
+  const autoOpenWidget = () => {
+    if (!hasBeenClosed()) {
+      // Small delay to ensure everything is loaded
+      setTimeout(() => {
+        overlay.classList.add('active')
+      }, 1000)
+    }
+  }
+
+  // Auto-open on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoOpenWidget)
+  } else {
+    autoOpenWidget()
+  }
 })()
 
