@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'preact/hooks'
 import './App.css'
 
 const RATING_OPTIONS = [1, 2, 3, 4, 5]
