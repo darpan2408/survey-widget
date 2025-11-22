@@ -84,8 +84,8 @@
 
   const button = document.createElement('button')
   button.className = 'nps-launcher-btn'
-  button.setAttribute('aria-label', 'Open NPS survey')
-  button.innerHTML = '★'
+  button.setAttribute('aria-label', 'Open feedback survey')
+  button.innerHTML = '📝'
 
   const overlay = document.createElement('div')
   overlay.className = 'nps-widget-overlay'
