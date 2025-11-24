@@ -16,21 +16,46 @@
   const styles = `
     .nps-launcher-btn {
       position: fixed;
-      right: 26px;
-      bottom: 26px;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #0f62fe, #2563eb);
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 150px;
+      border-radius: 12px 0 0 12px;
+      background: #215fff;
       color: #fff;
       border: none;
-      box-shadow: 0 18px 30px rgba(15, 98, 254, 0.35);
       cursor: pointer;
       z-index: 9998;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      gap: 12px;
+      padding: 16px 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .nps-launcher-btn:hover {
+      transform: translateY(-50%) translateX(-4px);
+      box-shadow: -6px 0 16px rgba(33, 95, 255, 0.4);
+    }
+    .nps-launcher-btn-text {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .nps-launcher-btn-icon {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     .nps-widget-overlay {
       position: fixed;
@@ -85,7 +110,16 @@
   const button = document.createElement('button')
   button.className = 'nps-launcher-btn'
   button.setAttribute('aria-label', 'Open feedback survey')
-  button.innerHTML = '📝'
+  button.innerHTML = `
+    <span class="nps-launcher-btn-text">Feedback</span>
+    <svg class="nps-launcher-btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="none"/>
+      <polyline points="14 2 14 8 20 8" fill="none"/>
+      <line x1="16" y1="13" x2="8" y2="13" fill="none"/>
+      <line x1="16" y1="17" x2="8" y2="17" fill="none"/>
+      <polyline points="10 9 9 9 8 9" fill="none"/>
+    </svg>
+  `
 
   const overlay = document.createElement('div')
   overlay.className = 'nps-widget-overlay'
