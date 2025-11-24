@@ -57,32 +57,30 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
-    .nps-widget-overlay {
+    .nps-widget-panel {
       position: fixed;
-      inset: 0;
-      background: transparent;
+      bottom: 26px;
+      right: 26px;
       display: none;
-      align-items: flex-end;
-      justify-content: flex-end;
-      padding: 0 26px 110px;
+      pointer-events: auto;
+      background: transparent;
+      overflow: visible;
+      animation: nps-slide-up 0.25s ease;
       z-index: 9999;
     }
-    .nps-widget-overlay.active {
-      display: flex;
+    .nps-widget-panel::before {
+      content: '';
+      display: none;
     }
-    .nps-widget-panel {
-      position: relative;
-      pointer-events: auto;
-      border-radius: 16px;
-      box-shadow: 0 35px 80px rgba(15, 23, 42, 0.35);
-      background: #fff;
-      overflow: hidden;
-      animation: nps-slide-up 0.25s ease;
+    .nps-widget-panel.active {
+      display: block;
     }
     .nps-widget-frame {
       width: min(420px, 90vw);
       height: min(640px, 80vh);
       border: none;
+      background: transparent;
+      display: block;
     }
     .nps-widget-close {
       position: absolute;
@@ -121,9 +119,6 @@
     </svg>
   `
 
-  const overlay = document.createElement('div')
-  overlay.className = 'nps-widget-overlay'
-
   const panel = document.createElement('div')
   panel.className = 'nps-widget-panel'
 
@@ -140,13 +135,13 @@
 
   const STORAGE_KEY = 'nps-widget-closed'
   
-  const closeOverlay = () => {
+  const closePanel = () => {
     try {
       iframe.contentWindow?.postMessage({ type: 'NPS_WIDGET_RESET' }, widgetOrigin)
     } catch (error) {
       // ignore cross-origin issues
     }
-    overlay.classList.remove('active')
+    panel.classList.remove('active')
     iframe.src = WIDGET_URL
     // Remember that user closed the widget
     try {
@@ -156,32 +151,25 @@
     }
   }
 
-  closeBtn.addEventListener('click', closeOverlay)
-
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) {
-      closeOverlay()
-    }
-  })
+  closeBtn.addEventListener('click', closePanel)
 
   button.addEventListener('click', () => {
-    overlay.classList.add('active')
+    panel.classList.add('active')
   })
 
   // Listen for close message from the iframe (when feedback is submitted)
   window.addEventListener('message', (event) => {
     const originMatches = widgetOrigin === '*' || event.origin === widgetOrigin
     if (originMatches && event.data?.type === 'NPS_WIDGET_CLOSE') {
-      closeOverlay()
+      closePanel()
     }
   })
 
   panel.appendChild(closeBtn)
   panel.appendChild(iframe)
 
-  overlay.appendChild(panel)
   document.body.appendChild(button)
-  document.body.appendChild(overlay)
+  document.body.appendChild(panel)
 
   // Auto-open widget once if it hasn't been closed before
   const hasBeenClosed = () => {
@@ -197,7 +185,7 @@
     if (!hasBeenClosed()) {
       // Small delay to ensure everything is loaded
       setTimeout(() => {
-        overlay.classList.add('active')
+        panel.classList.add('active')
       }, 1000)
     }
   }
