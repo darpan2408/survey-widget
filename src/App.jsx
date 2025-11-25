@@ -57,6 +57,26 @@ function App() {
   const [feedback, setFeedback] = useState('')
   const isLowScore = score !== null && score <= 2
 
+  const sendCloseMessage = () => {
+    setTimeout(() => {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'NPS_WIDGET_CLOSE' }, '*')
+        }
+      } catch (error) {
+        console.error('Failed to send close message:', error)
+      }
+    }, 100)
+  }
+
+  const handleScoreSelect = (value) => {
+    setScore(value)
+    if (value >= 4) {
+      window.open(GOOGLE_REVIEW_URL, '_blank', 'noopener')
+      sendCloseMessage()
+    }
+  }
+
   useEffect(() => {
     const moodClass = getMoodClass(score)
     MOOD_CLASSES.forEach((cls) => document.body.classList.remove(cls))
@@ -94,7 +114,7 @@ function App() {
                 key={value}
                 type="button"
                 className={`star-button ${isActive ? 'active' : ''}`}
-                onClick={() => setScore(value)}
+                onClick={() => handleScoreSelect(value)}
                 aria-checked={score === value}
                 role="radio"
                 aria-label={`${value} star${value > 1 ? 's' : ''}`}
@@ -112,35 +132,6 @@ function App() {
           </span>
         )}
       </div>
-
-      {score !== null && score >= 4 && (
-        <div className="follow-up positive">
-          <h2>Thank you!</h2>
-          <p>
-            We appreciate your score. Could you spare a minute to share a quick review on Google?
-          </p>
-          <a
-            className="review-link"
-            href={GOOGLE_REVIEW_URL}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => {
-              // Close the widget automatically after clicking the review link
-              setTimeout(() => {
-                try {
-                  if (window.parent && window.parent !== window) {
-                    window.parent.postMessage({ type: 'NPS_WIDGET_CLOSE' }, '*')
-                  }
-                } catch (error) {
-                  console.error('Failed to send close message:', error)
-                }
-              }, 100)
-            }}
-          >
-            Leave a Google review
-          </a>
-        </div>
-      )}
 
       {score !== null && score <= 3 && (
         <div className="follow-up negative">
@@ -165,15 +156,7 @@ function App() {
               setFeedback('')
               setScore(null)
               // Close the widget automatically after submission
-              setTimeout(() => {
-                try {
-                  if (window.parent && window.parent !== window) {
-                    window.parent.postMessage({ type: 'NPS_WIDGET_CLOSE' }, '*')
-                  }
-                } catch (error) {
-                  console.error('Failed to send close message:', error)
-                }
-              }, 100)
+              sendCloseMessage()
             }}
           >
             Submit feedback
