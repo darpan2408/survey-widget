@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import './App.css'
 
 const RATING_OPTIONS = [1, 2, 3, 4, 5]
@@ -57,6 +57,7 @@ function App() {
   const [feedback, setFeedback] = useState('')
   const [hoveredScore, setHoveredScore] = useState(null)
   const [showThankYou, setShowThankYou] = useState(false)
+  const ratingBarRef = useRef(null)
   const isLowScore = score !== null && score <= 2
 
   const sendCloseMessage = () => {
@@ -69,6 +70,18 @@ function App() {
         console.error('Failed to send close message:', error)
       }
     }, 100)
+  }
+
+  const handleRatingHover = (event) => {
+    if (!ratingBarRef.current) return
+    const rect = ratingBarRef.current.getBoundingClientRect()
+    const relativeX = event.clientX - rect.left
+    const percentage = Math.min(Math.max(relativeX / rect.width, 0), 1)
+    const hoveredValue = Math.min(
+      RATING_OPTIONS.length,
+      Math.max(1, Math.ceil(percentage * RATING_OPTIONS.length))
+    )
+    setHoveredScore(hoveredValue)
   }
 
   const handleScoreSelect = (value) => {
@@ -128,7 +141,14 @@ function App() {
           <p className="rating-subtext">Click on a star to rate.</p>
 
           <div className={`rating-row ${isLowScore ? 'shake' : ''}`}>
-            <div className="rating-bar" role="radiogroup" aria-label="Star rating">
+            <div
+              className="rating-bar"
+              role="radiogroup"
+              aria-label="Star rating"
+              ref={ratingBarRef}
+              onMouseMove={handleRatingHover}
+              onMouseLeave={() => setHoveredScore(null)}
+            >
               {RATING_OPTIONS.map((value) => {
                 const isHighlighted =
                   hoveredScore !== null ? value <= hoveredScore : score !== null && value <= score
@@ -140,8 +160,6 @@ function App() {
                       score === value ? 'active' : ''
                     }`}
                     onClick={() => handleScoreSelect(value)}
-                    onMouseEnter={() => setHoveredScore(value)}
-                    onMouseLeave={() => setHoveredScore(null)}
                     onFocus={() => setHoveredScore(value)}
                     onBlur={() => setHoveredScore(null)}
                     aria-checked={score === value}
