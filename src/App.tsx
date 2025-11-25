@@ -1,21 +1,28 @@
-
 import { useEffect, useRef, useState } from 'preact/hooks'
 import './App.css'
 
-const RATING_OPTIONS = [1, 2, 3, 4, 5]
-const EMOJI_BY_SCORE = {
+const RATING_OPTIONS = [1, 2, 3, 4, 5] as const
+type RatingValue = typeof RATING_OPTIONS[number]
+
+interface EmojiData {
+  symbol: string
+  label: string
+}
+
+const EMOJI_BY_SCORE: Record<RatingValue, EmojiData> = {
   1: { symbol: '😣', label: 'Not Satisfied' },
   2: { symbol: '😕', label: 'Slightly Satisfied' },
   3: { symbol: '😐', label: 'Neutral' },
   4: { symbol: '😊', label: 'Satisfied' },
   5: { symbol: '🤩', label: 'Very Satisfied' },
 }
+
 const CONFETTI_COLORS = ['#1d4ed8', '#2563eb', '#38bdf8', '#0ea5e9', '#22c55e', '#6366f1']
-const MOOD_CLASSES = ['mood-low', 'mood-neutral', 'mood-happy', 'mood-wow']
+const MOOD_CLASSES = ['mood-low', 'mood-neutral', 'mood-happy', 'mood-wow'] as const
 const GOOGLE_REVIEW_URL = 'https://search.google.com/local/writereview?placeid=ChIJUT-b4JIRrjsRZ3uqCVAGBe0'
 const API_URL = 'https://parchi.dev.eka.care/service/user-feedback/161467756044203'
 
-const getMoodClass = (value) => {
+const getMoodClass = (value: RatingValue | null): string => {
   if (!value) return ''
   if (value <= 2) return 'mood-low'
   if (value === 3) return 'mood-neutral'
@@ -23,7 +30,7 @@ const getMoodClass = (value) => {
   return 'mood-wow'
 }
 
-const submitFeedbackToAPI = async (rating, feedbackText = '') => {
+const submitFeedbackToAPI = async (rating: RatingValue, feedbackText: string = ''): Promise<boolean> => {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -48,7 +55,11 @@ const submitFeedbackToAPI = async (rating, feedbackText = '') => {
   }
 }
 
-function ConfettiBurst({ trigger }) {
+interface ConfettiBurstProps {
+  trigger: boolean
+}
+
+function ConfettiBurst({ trigger }: ConfettiBurstProps) {
   const [burstId, setBurstId] = useState(0)
 
   useEffect(() => {
@@ -71,7 +82,7 @@ function ConfettiBurst({ trigger }) {
             animationDelay: `${Math.random() * 0.2}s`,
             animationDuration: `${0.9 + Math.random() * 0.6}s`,
             '--drift': `${Math.random() * 80 - 40}px`,
-          }}
+          } as preact.JSX.CSSProperties & { '--drift': string }}
         />
       ))}
     </div>
@@ -79,11 +90,11 @@ function ConfettiBurst({ trigger }) {
 }
 
 function App() {
-  const [score, setScore] = useState(null)
+  const [score, setScore] = useState<RatingValue | null>(null)
   const [feedback, setFeedback] = useState('')
-  const [hoveredScore, setHoveredScore] = useState(null)
+  const [hoveredScore, setHoveredScore] = useState<RatingValue | null>(null)
   const [showThankYou, setShowThankYou] = useState(false)
-  const ratingBarRef = useRef(null)
+  const ratingBarRef = useRef<HTMLDivElement>(null)
   const isLowScore = score !== null && score <= 2
 
   const sendCloseMessage = () => {
@@ -98,7 +109,7 @@ function App() {
     }, 100)
   }
 
-  const handleRatingHover = (event) => {
+  const handleRatingHover = (event: MouseEvent) => {
     if (!ratingBarRef.current) return
     const rect = ratingBarRef.current.getBoundingClientRect()
     const relativeX = event.clientX - rect.left
@@ -106,11 +117,11 @@ function App() {
     const hoveredValue = Math.min(
       RATING_OPTIONS.length,
       Math.max(1, Math.ceil(percentage * RATING_OPTIONS.length))
-    )
+    ) as RatingValue
     setHoveredScore(hoveredValue)
   }
 
-  const handleScoreSelect = async (value) => {
+  const handleScoreSelect = async (value: RatingValue) => {
     if (showThankYou) return
     setScore(value)
     if (value >= 4) {
@@ -144,7 +155,7 @@ function App() {
   }, [score])
 
   useEffect(() => {
-    const handleMessage = (event) => {
+    const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'NPS_WIDGET_RESET') {
         setScore(null)
         setFeedback('')
@@ -225,10 +236,10 @@ function App() {
               <p>Please let us know what went wrong so we can improve.</p>
               <textarea
                 value={feedback}
-                onChange={(event) => setFeedback(event.target.value)}
+                onChange={(event) => setFeedback((event.target as HTMLTextAreaElement).value)}
                 placeholder="Share your thoughts..."
                 rows={4}
-                spellCheck={false}
+                spellcheck={false}
               />
               <button
                 className="submit-button"
@@ -254,4 +265,6 @@ function App() {
     </div>
   )
 }
+
 export default App
+
