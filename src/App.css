@@ -54,15 +54,36 @@ body.mood-wow {
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
 }
 
-h1 {
-  margin: 0;
-  font-size: 2rem;
-  color: #0f172a;
-}
-
 p {
   margin: 0;
   color: #475467;
+  line-height: 1.5;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+.rating-subtext {
+  display: inline-block;
+  margin: 0;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.thank-you-banner {
+  width: 100%;
+  text-align: center;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 30px rgba(22, 101, 52, 0.15);
 }
 
 .rating-row {
@@ -100,7 +121,8 @@ p {
   stroke-width: 1.7;
 }
 
-.star-button.active svg {
+.star-button.active svg,
+.star-button.highlighted svg {
   fill: #2563eb;
   stroke: #2563eb;
 }

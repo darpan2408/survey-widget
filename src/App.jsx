@@ -55,6 +55,8 @@ function ConfettiBurst({ trigger }) {
 function App() {
   const [score, setScore] = useState(null)
   const [feedback, setFeedback] = useState('')
+  const [hoveredScore, setHoveredScore] = useState(null)
+  const [showThankYou, setShowThankYou] = useState(false)
   const isLowScore = score !== null && score <= 2
 
   const sendCloseMessage = () => {
@@ -70,12 +72,24 @@ function App() {
   }
 
   const handleScoreSelect = (value) => {
+    if (showThankYou) return
     setScore(value)
     if (value >= 4) {
       window.open(GOOGLE_REVIEW_URL, '_blank', 'noopener')
       sendCloseMessage()
     }
   }
+
+  useEffect(() => {
+    if (!showThankYou) return
+
+    const timeoutId = setTimeout(() => {
+      setShowThankYou(false)
+      sendCloseMessage()
+    }, 2000)
+
+    return () => clearTimeout(timeoutId)
+  }, [showThankYou])
 
   useEffect(() => {
     const moodClass = getMoodClass(score)
@@ -93,6 +107,7 @@ function App() {
       if (event.data?.type === 'NPS_WIDGET_RESET') {
         setScore(null)
         setFeedback('')
+        setShowThankYou(false)
       }
     }
     window.addEventListener('message', handleMessage)
@@ -102,66 +117,80 @@ function App() {
   return (
     <div className="app-shell">
       <ConfettiBurst trigger={score === 5} />
-      <h1>How likely are you to recommend us?</h1>
-      <p>Please rate us on a scale of 1 (not likely) to 5 (very likely).</p>
+      {showThankYou ? (
+        <div className="thank-you-banner" role="status" aria-live="polite">
+          <strong>Thanks for letting us know.</strong>
+          <span> We&apos;re on it!</span>
+        </div>
+      ) : (
+        <>
+          <h1>How was your experience?</h1>
+          <p className="rating-subtext">Click on a star to rate.</p>
 
-      <div className={`rating-row ${isLowScore ? 'shake' : ''}`}>
-        <div className="rating-bar" role="radiogroup" aria-label="Star rating">
-          {RATING_OPTIONS.map((value) => {
-            const isActive = score !== null && value <= score
-            return (
+          <div className={`rating-row ${isLowScore ? 'shake' : ''}`}>
+            <div className="rating-bar" role="radiogroup" aria-label="Star rating">
+              {RATING_OPTIONS.map((value) => {
+                const isHighlighted =
+                  hoveredScore !== null ? value <= hoveredScore : score !== null && value <= score
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`star-button ${isHighlighted ? 'highlighted' : ''} ${
+                      score === value ? 'active' : ''
+                    }`}
+                    onClick={() => handleScoreSelect(value)}
+                    onMouseEnter={() => setHoveredScore(value)}
+                    onMouseLeave={() => setHoveredScore(null)}
+                    onFocus={() => setHoveredScore(value)}
+                    onBlur={() => setHoveredScore(null)}
+                    aria-checked={score === value}
+                    role="radio"
+                    aria-label={`${value} star${value > 1 ? 's' : ''}`}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M12 3.2l2.8 5.7 6.3.9-4.5 4.4 1.1 6.4L12 17.8 6.3 20.6l1.1-6.4L2.9 9.8l6.3-.9L12 3.2z" />
+                    </svg>
+                  </button>
+                )
+              })}
+            </div>
+            {score !== null && (
+              <span className={`emoji-inline ${isLowScore ? 'emoji-shake' : ''}`} role="img" aria-label={EMOJI_BY_SCORE[score].label}>
+                {EMOJI_BY_SCORE[score].symbol}
+              </span>
+            )}
+          </div>
+
+          {score !== null && score <= 3 && (
+            <div className="follow-up negative">
+              <h2>We&apos;re sorry to hear that.</h2>
+              <p>Please let us know what went wrong so we can improve.</p>
+              <textarea
+                value={feedback}
+                onChange={(event) => setFeedback(event.target.value)}
+                placeholder="Share your thoughts..."
+                rows={4}
+                spellCheck={false}
+              />
               <button
-                key={value}
+                className="submit-button"
                 type="button"
-                className={`star-button ${isActive ? 'active' : ''}`}
-                onClick={() => handleScoreSelect(value)}
-                aria-checked={score === value}
-                role="radio"
-                aria-label={`${value} star${value > 1 ? 's' : ''}`}
+                onClick={() => {
+                  if (!feedback.trim()) {
+                    alert('Please share a quick note so we can help.')
+                    return
+                  }
+                  setFeedback('')
+                  setScore(null)
+                  setShowThankYou(true)
+                }}
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 3.2l2.8 5.7 6.3.9-4.5 4.4 1.1 6.4L12 17.8 6.3 20.6l1.1-6.4L2.9 9.8l6.3-.9L12 3.2z" />
-                </svg>
+                Submit feedback
               </button>
-            )
-          })}
-        </div>
-        {score !== null && (
-          <span className={`emoji-inline ${isLowScore ? 'emoji-shake' : ''}`} role="img" aria-label={EMOJI_BY_SCORE[score].label}>
-            {EMOJI_BY_SCORE[score].symbol}
-          </span>
-        )}
-      </div>
-
-      {score !== null && score <= 3 && (
-        <div className="follow-up negative">
-          <h2>We&apos;re sorry to hear that.</h2>
-          <p>Please let us know what went wrong so we can improve.</p>
-          <textarea
-            value={feedback}
-            onChange={(event) => setFeedback(event.target.value)}
-            placeholder="Share your thoughts..."
-            rows={4}
-            spellCheck={false}
-          />
-          <button
-            className="submit-button"
-            type="button"
-            onClick={() => {
-              if (!feedback.trim()) {
-                alert('Please share a quick note so we can help.')
-                return
-              }
-              alert('Thanks for letting us know. We are on it!')
-              setFeedback('')
-              setScore(null)
-              // Close the widget automatically after submission
-              sendCloseMessage()
-            }}
-          >
-            Submit feedback
-          </button>
-        </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

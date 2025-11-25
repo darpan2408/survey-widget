@@ -61,23 +61,28 @@
         stroke-linecap: round;
         stroke-linejoin: round;
       }
-      .nps-widget-panel {
+      .nps-widget-overlay {
         position: fixed;
-        bottom: 26px;
-        right: 26px;
+        inset: 0;
         display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 10000;
+        pointer-events: none;
+      }
+      .nps-widget-overlay.active {
+        display: flex;
         pointer-events: auto;
+      }
+      .nps-widget-panel {
+        position: relative;
         background: transparent;
         overflow: visible;
-        animation: nps-slide-up 0.25s ease;
-        z-index: 9999;
-      }
-      .nps-widget-panel::before {
-        content: '';
-        display: none;
-      }
-      .nps-widget-panel.active {
-        display: block;
+        animation: nps-fade-in 0.25s ease;
+        z-index: 10001;
       }
       .nps-widget-frame {
         width: min(420px, 90vw);
@@ -90,17 +95,21 @@
         position: absolute;
         top: 10px;
         right: 10px;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
+        width: 32px;
+        height: 32px;
         border: none;
-        background: rgba(15, 23, 42, 0.75);
-        color: #fff;
-        font-size: 18px;
+        background: transparent;
+        color: #000;
+        font-size: 28px;
+        line-height: 1;
         cursor: pointer;
+        padding: 0;
       }
-      @keyframes nps-slide-up {
-        from { transform: translateY(25px); opacity: 0; }
+      .nps-modal-body-lock {
+        overflow: hidden !important;
+      }
+      @keyframes nps-fade-in {
+        from { transform: translateY(20px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
       }
     `
@@ -113,7 +122,7 @@
     button.className = 'nps-launcher-btn'
     button.setAttribute('aria-label', 'Open feedback survey')
     button.innerHTML = `
-      <span class="nps-launcher-btn-text">Feedback</span>
+      <span class="nps-launcher-btn-text">Review US</span>
       <svg class="nps-launcher-btn-icon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="none"/>
         <polyline points="14 2 14 8 20 8" fill="none"/>
@@ -122,6 +131,9 @@
         <polyline points="10 9 9 9 8 9" fill="none"/>
       </svg>
     `
+
+    const overlay = document.createElement('div')
+    overlay.className = 'nps-widget-overlay'
 
     const panel = document.createElement('div')
     panel.className = 'nps-widget-panel'
@@ -145,7 +157,8 @@
       } catch (error) {
         // ignore cross-origin issues
       }
-      panel.classList.remove('active')
+      overlay.classList.remove('active')
+      document.body.classList.remove('nps-modal-body-lock')
       iframe.src = WIDGET_URL
       // Remember that user closed the widget
       try {
@@ -158,7 +171,14 @@
     closeBtn.addEventListener('click', closePanel)
 
     button.addEventListener('click', () => {
-      panel.classList.add('active')
+      overlay.classList.add('active')
+      document.body.classList.add('nps-modal-body-lock')
+    })
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        closePanel()
+      }
     })
 
     // Listen for close message from the iframe (when feedback is submitted)
@@ -171,9 +191,10 @@
 
     panel.appendChild(closeBtn)
     panel.appendChild(iframe)
+    overlay.appendChild(panel)
 
     document.body.appendChild(button)
-    document.body.appendChild(panel)
+    document.body.appendChild(overlay)
 
     // Auto-open widget once if it hasn't been closed before
     const hasBeenClosed = () => {
@@ -189,7 +210,8 @@
       if (!hasBeenClosed()) {
         // Small delay to ensure everything is loaded
         setTimeout(() => {
-          panel.classList.add('active')
+          overlay.classList.add('active')
+          document.body.classList.add('nps-modal-body-lock')
         }, 1000)
       }
     }
