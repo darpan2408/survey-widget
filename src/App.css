@@ -48,6 +48,8 @@ body.mood-wow {
   overflow: hidden;
   background: white !important;
   border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-color: #215fff;
   padding: 2.5rem 2rem 2.75rem;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
 }
