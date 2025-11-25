@@ -13,6 +13,7 @@ const EMOJI_BY_SCORE = {
 const CONFETTI_COLORS = ['#1d4ed8', '#2563eb', '#38bdf8', '#0ea5e9', '#22c55e', '#6366f1']
 const MOOD_CLASSES = ['mood-low', 'mood-neutral', 'mood-happy', 'mood-wow']
 const GOOGLE_REVIEW_URL = 'https://search.google.com/local/writereview?placeid=ChIJUT-b4JIRrjsRZ3uqCVAGBe0'
+const API_URL = 'https://parchi.dev.eka.care/service/user-feedback/161467756044203'
 
 const getMoodClass = (value) => {
   if (!value) return ''
@@ -20,6 +21,31 @@ const getMoodClass = (value) => {
   if (value === 3) return 'mood-neutral'
   if (value === 4) return 'mood-happy'
   return 'mood-wow'
+}
+
+const submitFeedbackToAPI = async (rating, feedbackText = '') => {
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        rating,
+        feedback: feedbackText,
+      }),
+      mode: 'cors',
+      credentials: 'include',
+    })
+    
+    if (!response.ok) {
+      console.error('Failed to submit feedback:', response.statusText)
+    }
+    return response.ok
+  } catch (error) {
+    console.error('Error submitting feedback:', error)
+    return false
+  }
 }
 
 function ConfettiBurst({ trigger }) {
@@ -84,10 +110,12 @@ function App() {
     setHoveredScore(hoveredValue)
   }
 
-  const handleScoreSelect = (value) => {
+  const handleScoreSelect = async (value) => {
     if (showThankYou) return
     setScore(value)
     if (value >= 4) {
+      // Submit rating to API for high scores
+      await submitFeedbackToAPI(value, '')
       window.open(GOOGLE_REVIEW_URL, '_blank', 'noopener')
       sendCloseMessage()
     }
@@ -205,11 +233,13 @@ function App() {
               <button
                 className="submit-button"
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (!feedback.trim()) {
                     alert('Please share a quick note so we can help.')
                     return
                   }
+                  // Submit rating and feedback to API
+                  await submitFeedbackToAPI(score, feedback)
                   setFeedback('')
                   setScore(null)
                   setShowThankYou(true)
