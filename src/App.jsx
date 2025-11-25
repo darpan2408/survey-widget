@@ -142,36 +142,47 @@ function App() {
 
           <div className={`rating-row ${isLowScore ? 'shake' : ''}`}>
             <div
-              className="rating-bar"
+              className="rating-bar-wrapper"
               role="radiogroup"
               aria-label="Star rating"
-              ref={ratingBarRef}
-              onMouseMove={handleRatingHover}
-              onMouseLeave={() => setHoveredScore(null)}
             >
-              {RATING_OPTIONS.map((value) => {
-                const isHighlighted =
-                  hoveredScore !== null ? value <= hoveredScore : score !== null && value <= score
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`star-button ${isHighlighted ? 'highlighted' : ''} ${
-                      score === value ? 'active' : ''
-                    }`}
-                    onClick={() => handleScoreSelect(value)}
-                    onFocus={() => setHoveredScore(value)}
-                    onBlur={() => setHoveredScore(null)}
-                    aria-checked={score === value}
-                    role="radio"
-                    aria-label={`${value} star${value > 1 ? 's' : ''}`}
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                      <path d="M12 3.2l2.8 5.7 6.3.9-4.5 4.4 1.1 6.4L12 17.8 6.3 20.6l1.1-6.4L2.9 9.8l6.3-.9L12 3.2z" />
-                    </svg>
-                  </button>
-                )
-              })}
+              <div
+                className="rating-bar"
+                ref={ratingBarRef}
+                onMouseMove={handleRatingHover}
+                onMouseLeave={() => setHoveredScore(null)}
+              >
+                {RATING_OPTIONS.map((value) => {
+                  const isHighlighted =
+                    hoveredScore !== null ? value <= hoveredScore : score !== null && value <= score
+                  return (
+                    <div key={value} className="star-container">
+                      <button
+                        type="button"
+                        className={`star-button ${isHighlighted ? 'highlighted' : ''} ${
+                          score === value ? 'active' : ''
+                        }`}
+                        onClick={() => handleScoreSelect(value)}
+                        onFocus={() => setHoveredScore(value)}
+                        onBlur={() => setHoveredScore(null)}
+                        aria-checked={score === value}
+                        role="radio"
+                        aria-label={`${value} star${value > 1 ? 's' : ''}`}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M12 3.2l2.8 5.7 6.3.9-4.5 4.4 1.1 6.4L12 17.8 6.3 20.6l1.1-6.4L2.9 9.8l6.3-.9L12 3.2z" />
+                        </svg>
+                      </button>
+                      {value === 1 && (
+                        <span className="star-label star-label-first">Not Helpful</span>
+                      )}
+                      {value === 5 && (
+                        <span className="star-label star-label-last">Helpful</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
             {score !== null && (
               <span className={`emoji-inline ${isLowScore ? 'emoji-shake' : ''}`} role="img" aria-label={EMOJI_BY_SCORE[score].label}>
